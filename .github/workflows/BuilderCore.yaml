@@ -1,0 +1,209 @@
+# 编译核心
+name: BuilderCore
+
+on:
+  workflow_call:
+    inputs:
+      OPENWRT_REPO:
+        required: true
+        type: string
+      OPENWRT_BRANCH:
+        required: true
+        type: string
+      OPENWRT_TARGET:
+        required: true
+        type: string
+      OPENWRT_HOSTNAME:
+        required: true
+        type: string
+      OPENWRT_LANIP:
+        required: true
+        type: string
+      OPENWRT_RMWIFINAME:
+        required: true
+        type: string
+      OPENWRT_THEME:
+        required: true
+        type: string
+      OPENWRT_PACKAGES:
+        required: false
+        type: string
+      OPENWRT_RMWIFI:
+        default: false
+        required: true
+        type: boolean
+      OPENWRT_RMUSB:
+        default: false
+        required: true
+        type: boolean
+      IS_RELEASE:
+        default: true
+        required: true
+        type: boolean
+
+env:
+  OPENWRT_TARGET: ${{inputs.OPENWRT_TARGET}}
+  OPENWRT_THEME: ${{inputs.OPENWRT_THEME}}
+  OPENWRT_HOSTNAME: ${{inputs.OPENWRT_HOSTNAME}}
+  OPENWRT_RMWIFINAME: ${{inputs.OPENWRT_RMWIFINAME}}
+  OPENWRT_LANIP: ${{inputs.OPENWRT_LANIP}}
+  OPENWRT_REPO: ${{inputs.OPENWRT_REPO}}
+  OPENWRT_BRANCH: ${{inputs.OPENWRT_BRANCH}}
+  OPENWRT_PACKAGES: ${{inputs.OPENWRT_PACKAGES}}
+  OPENWRT_RMWIFI: ${{inputs.OPENWRT_RMWIFI}}
+  OPENWRT_RMUSB: ${{inputs.OPENWRT_RMUSB}}
+  IS_RELEASE: ${{inputs.IS_RELEASE}}
+  # 运行过程中用到的环境变量
+  OpenWrt_INFO: OpenWRT
+
+jobs:
+  BuilderCore:
+    name: 编译平台：${{inputs.OPENWRT_TARGET}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Projects
+        uses: actions/checkout@main
+
+      - name: Free Disk Space
+        uses: endersonmenezes/free-disk-space@main
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          remove_tool_cache: true
+          remove_swap: true
+          remove_packages: "android* azure* clang* dotnet* firefox* ghc* golang* google* libclang* libgl1* lld* llvm* \
+            microsoft* mongodb* mono* mysql* nodejs* openjdk* php* postgresql* powershell* snap* temurin* yarn* zulu*"
+          remove_packages_one_command: true
+          remove_folders: "/etc/apt/sources.list.d* /etc/mono* /etc/mysql* /usr/include/linux/android* /usr/lib/llvm* /usr/lib/mono* \
+            /usr/local/lib/android* /usr/local/lib/node_modules* /usr/local/share/chromium* /usr/local/share/powershell* \
+            /usr/local/share/vcpkg/ports/azure* /usr/local/share/vcpkg/ports/google* /usr/local/share/vcpkg/ports/libpq/android* \
+            /usr/local/share/vcpkg/ports/llvm* /usr/local/share/vcpkg/ports/mysql* /usr/local/share/vcpkg/ports/snap* \
+            /usr/share/azure* /usr/share/dotnet* /usr/share/glade* /usr/share/miniconda* /usr/share/php* /usr/share/swift \
+            /var/lib/mysql* /var/log/azure*"
+          testing: false
+
+      - name: Initialization Environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          docker rmi $(docker images -q)
+          sudo -E apt -yqq update
+          sudo -E apt -yqq full-upgrade
+          sudo -E apt -yqq autoremove --purge
+          sudo -E apt -yqq autoclean
+          sudo -E apt -yqq clean
+          sudo -E apt -yqq install dos2unix
+          sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
+          sudo -E systemctl daemon-reload
+          sudo -E timedatectl set-timezone "Asia/Shanghai"
+
+      - name: Version Information
+        run: |
+          if echo "${{inputs.OPENWRT_REPO}}" | grep -iq "lede"; then
+            DISTRO="LEDE"
+          elif echo "${{inputs.OPENWRT_REPO}}" | grep -iq "immortalwrt"; then
+            DISTRO="ImmortalWRT"
+          else
+            DISTRO="OpenWRT"
+          fi
+
+          echo "OpenWrt_INFO=${DISTRO}_${OPENWRT_BRANCH}_$(date +"%Y%m%d%H%M")_${OPENWRT_TARGET}" >> $GITHUB_ENV
+
+      - name: Clone Code
+        run: |
+          git clone --depth=1 --single-branch --branch $OPENWRT_BRANCH $OPENWRT_REPO ./openwrt/
+
+      - name: Check Scripts
+        run: |
+          find ./ -maxdepth 3 -type f -iregex ".*\(txt\|sh\)$" -exec dos2unix {} \; -exec chmod +x {} \;
+
+      - name: Load Custom Packages Feeds
+        run: |
+          $GITHUB_WORKSPACE/Scripts/CustomFeeds.sh
+
+      - name: Update Feeds
+        run: |
+          cd ./openwrt/
+          ./scripts/feeds update -a
+
+      - name: Install Feeds
+        run: |
+          cd ./openwrt/
+          ./scripts/feeds install -a
+
+      - name: Custom Settings
+        run: |
+          cd ./openwrt/
+          rm -rf ./tmp* ./.config*
+          cat $GITHUB_WORKSPACE/Config/$OPENWRT_TARGET.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
+          $GITHUB_WORKSPACE/Scripts/Settings.sh
+          $GITHUB_WORKSPACE/Scripts/Package.sh
+          make defconfig
+          $GITHUB_WORKSPACE/Scripts/RmWiFi.sh
+          $GITHUB_WORKSPACE/Scripts/RmUSB.sh
+
+      - name: Download Packages
+        run: |
+          cd ./openwrt/
+          make download -j$(nproc)
+
+      - name: Compile Firmware
+        id: compile
+        run: |
+          cd ./openwrt/
+          make -j$(nproc) || make -j1 V=s
+          echo "DEVICES=$(grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' | paste -sd,)" >> $GITHUB_ENV
+          echo "COMPILE_DATE=$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Machine Information
+        if: (!cancelled()) && (steps.compile.outputs.status == 'success')
+        run: |
+          cd ./openwrt/
+          echo "======================="
+          lscpu | grep -E "name|Core|Thread"
+          echo "======================="
+          df -h
+          echo "======================="
+          du -h --max-depth=1
+          echo "======================="
+
+      - name: Upload bin directory
+        uses: actions/upload-artifact@main
+        if: steps.compile.outputs.status == 'success'
+        with:
+          name: ${{ env.OpenWrt_INFO }}
+          path: ./openwrt/bin
+
+      - name: Organize files
+        id: organize
+        if: env.IS_RELEASE == 'true' && !cancelled()
+        run: |
+          cd openwrt/bin/targets/*/*
+          rm -rf packages
+          echo "FIRMWARE_DIR=$PWD" >> $GITHUB_ENV
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Release Firmware
+        if: steps.organize.outputs.status == 'success' &&!cancelled()
+        uses: softprops/action-gh-release@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.OpenWrt_INFO }}
+          files: ${{ env.FIRMWARE_DIR }}/*
+          body: |
+            这是个平台固件包，内含多个设备
+            请注意选择你需要的设备固件
+
+            源码：${{env.OPENWRT_REPO}}
+            分支：${{env.OPENWRT_BRANCH}}
+            平台：${{env.OPENWRT_TARGET}}
+            设备列表：${{env.DEVICES}}
+            网关地址：${{env.OPENWRT_LANIP}}
+            后台密码：空
+            WI-FI名: ${{env.OPENWRT_RMWIFINAME}}
+            默认主题：${{env.OPENWRT_THEME}}
+            自定义包：${{env.OPENWRT_PACKAGES}}
+            

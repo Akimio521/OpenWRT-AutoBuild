@@ -1,0 +1,93 @@
+name: BuildOne
+
+on:
+  workflow_dispatch:
+    inputs:
+      OPENWRT_REPO:
+        description: "OpenWRT源码链接"
+        default: "https://github.com/openwrt/openwrt.git"
+        required: true
+        type: choice
+        options: ["https://github.com/openwrt/openwrt.git", "https://github.com/immortalwrt/immortalwrt.git", "https://github.com/LiBwrt-op/openwrt-6.x.git", "https://github.com/coolsnowwolf/lede.git"]
+      OPENWRT_BRANCH:
+        description: "OepnWRT源码分支"
+        default: "main"
+        required: true
+        type: choice
+        options: ["main", "master", "openwrt-18.06", "openwrt-19.07", "openwrt-21.02", "openwrt-22.03", "openwrt-23.05"]
+      OPENWRT_TARGET:
+        description: "编译平台"
+        default: "X86"
+        required: true
+        type: choice
+        options: ["X86", "IPQ60XX", "IPQ807X", "ROCKCHIP", "MT798X"]
+      OPENWRT_HOSTNAME:
+        description: "默认主机名"
+        default: "OpenWRT"
+        required: true
+        type: string
+      OPENWRT_LANIP:
+        description: "默认LAN地址"
+        default: "192.168.1.1"
+        required: true
+        type: string
+      OPENWRT_RMWIFINAME:
+        description: "默认Wi-Fi名"
+        default: "OpenWRT"
+        required: true
+        type: string
+      OPENWRT_THEME:
+        description: "默认主题"
+        default: "argon"
+        required: true
+        type: string
+      OPENWRT_PACKAGES:
+        description: "手动增加插件，多个插件使用`,`分隔（例：luci-app-upnp,luci-app-wolplus,luci-app-autoreboot）"
+        required: false
+        type: string
+      OPENWRT_RMWIFI:
+        description: "移除所有Wi-Fi相关驱动"
+        default: false
+        required: true
+        type: boolean
+      OPENWRT_RMUSB:
+        description: "移除所有USB相关驱动"
+        default: false
+        required: true
+        type: boolean
+      IS_RELEASE:
+        description: "是否发布到Release"
+        default: true
+        required: true
+        type: boolean
+
+# CI权限
+permissions: write-all
+
+# CI任务
+jobs:
+  Build:
+    uses: ./.github/workflows/BuilderCore.yaml
+    with:
+      # 源码链接
+      OPENWRT_REPO: ${{inputs.OPENWRT_REPO}}
+      # 源码分支
+      OPENWRT_BRANCH: ${{inputs.OPENWRT_BRANCH}}
+      # 编译平台
+      OPENWRT_TARGET: ${{inputs.OPENWRT_TARGET}}
+      # 默认主机名
+      OPENWRT_HOSTNAME: ${{inputs.OPENWRT_HOSTNAME}}
+      # 默认LAN地址
+      OPENWRT_LANIP: ${{inputs.OPENWRT_LANIP}}
+      # 默认Wi-Fi名
+      OPENWRT_RMWIFINAME: ${{inputs.OPENWRT_RMWIFINAME}}
+      # 默认主题
+      OPENWRT_THEME: ${{inputs.OPENWRT_THEME}}
+      # 插件调整
+      OPENWRT_PACKAGES: ${{inputs.OPENWRT_PACKAGES}}
+      # 移除Wi-Fi
+      OPENWRT_RMWIFI: ${{inputs.OPENWRT_RMWIFI}}
+      # 移除USB
+      OPENWRT_RMUSB: ${{inputs.OPENWRT_RMUSB}}
+      # 是否发布
+      IS_RELEASE: ${{inputs.IS_RELEASE}}
