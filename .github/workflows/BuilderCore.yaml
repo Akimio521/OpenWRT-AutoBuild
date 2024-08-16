@@ -51,7 +51,7 @@ env:
   OPENWRT_BRANCH: ${{inputs.OPENWRT_BRANCH}}
   OPENWRT_PACKAGES: ${{inputs.OPENWRT_PACKAGES}}
   OPENWRT_RMWIFI: ${{inputs.OPENWRT_RMWIFI}}
-  OPENWRT_RMUSB: ${{inputs.OPENWRT_RMUSB}}
+  OPENWRT_USB: ${{inputs.OPENWRT_USB}}
   IS_RELEASE: ${{inputs.IS_RELEASE}}
   # 运行过程中用到的环境变量
   OpenWrt_INFO: OpenWRT
@@ -138,7 +138,7 @@ jobs:
           rm -rf ./tmp* ./.config*
           cat $GITHUB_WORKSPACE/Config/$OPENWRT_TARGET.txt >> .config
           cat $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
-          if [ $OPENWRT_RMUSB == true ]; then
+          if [ $OPENWRT_USB == true ]; then
             cat $GITHUB_WORKSPACE/Config/USB.txt >> .config
           fi
           $GITHUB_WORKSPACE/Scripts/Settings.sh
@@ -209,4 +209,6 @@ jobs:
             WI-FI名: ${{env.OPENWRT_RMWIFINAME}}
             默认主题：${{env.OPENWRT_THEME}}
             自定义包：${{env.OPENWRT_PACKAGES}}
+            是否移除WI-FI：${{env.OPENWRT_RMWIFI}}
+            是否添加USB：${{env.OPENWRT_USB}}
             
