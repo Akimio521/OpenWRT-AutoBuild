@@ -161,7 +161,7 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Machine Information
-        if: (!cancelled()) && (steps.compile.outputs.status == 'success')
+        if: steps.compile.outputs.status == 'success' && !cancelled()
         run: |
           cd ./openwrt/
           echo "======================="
@@ -181,7 +181,7 @@ jobs:
 
       - name: Organize files
         id: organize
-        if: env.IS_RELEASE == 'true' && !cancelled()
+        if: env.IS_RELEASE == 'true' && steps.compile.outputs.status == 'success' && !cancelled()
         run: |
           cd openwrt/bin/targets/*/*
           rm -rf packages
@@ -189,7 +189,7 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Release Firmware
-        if: steps.organize.outputs.status == 'success' &&!cancelled()
+        if: steps.organize.outputs.status == 'success' && !cancelled()
         uses: softprops/action-gh-release@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
