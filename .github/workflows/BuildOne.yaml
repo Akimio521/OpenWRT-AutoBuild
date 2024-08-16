@@ -10,11 +10,11 @@ on:
         type: choice
         options: ["https://github.com/openwrt/openwrt.git", "https://github.com/immortalwrt/immortalwrt.git", "https://github.com/LiBwrt-op/openwrt-6.x.git", "https://github.com/coolsnowwolf/lede.git"]
       OPENWRT_BRANCH:
-        description: "OepnWRT源码分支"
+        description: "源码分支（请确保仓库下有对应分支）"
         default: "main"
         required: true
         type: choice
-        options: ["main", "master", "openwrt-18.06", "openwrt-19.07", "openwrt-21.02", "openwrt-22.03", "openwrt-23.05"]
+        options: ["main", "master", "openwrt-18.06", "openwrt-19.07", "openwrt-21.02", "openwrt-22.03", "openwrt-23.05", "istoreos-22.03", "istoreos-23.05"]
       OPENWRT_TARGET:
         description: "编译平台"
         default: "X86"
