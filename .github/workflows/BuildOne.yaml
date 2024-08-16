@@ -8,7 +8,7 @@ on:
         default: "https://github.com/openwrt/openwrt.git"
         required: true
         type: choice
-        options: ["https://github.com/openwrt/openwrt.git", "https://github.com/immortalwrt/immortalwrt.git", "https://github.com/LiBwrt-op/openwrt-6.x.git", "https://github.com/coolsnowwolf/lede.git"]
+        options: ["https://github.com/openwrt/openwrt.git", "https://github.com/immortalwrt/immortalwrt.git", "https://github.com/istoreos/istoreos.git", "https://github.com/LiBwrt-op/openwrt-6.x.git", "https://github.com/coolsnowwolf/lede.git"]
       OPENWRT_BRANCH:
         description: "源码分支（请确保仓库下有对应分支）"
         default: "main"
