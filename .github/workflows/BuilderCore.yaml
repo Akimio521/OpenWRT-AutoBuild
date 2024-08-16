@@ -32,7 +32,7 @@ on:
         default: false
         required: true
         type: boolean
-      OPENWRT_RMUSB:
+      OPENWRT_USB:
         default: false
         required: true
         type: boolean
@@ -136,12 +136,15 @@ jobs:
         run: |
           cd ./openwrt/
           rm -rf ./tmp* ./.config*
-          cat $GITHUB_WORKSPACE/Config/$OPENWRT_TARGET.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
+          cat $GITHUB_WORKSPACE/Config/$OPENWRT_TARGET.txt >> .config
+          cat $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
+          if [ $OPENWRT_RMUSB == true ]; then
+            cat $GITHUB_WORKSPACE/Config/USB.txt >> .config
+          fi
           $GITHUB_WORKSPACE/Scripts/Settings.sh
           $GITHUB_WORKSPACE/Scripts/Package.sh
           make defconfig
           $GITHUB_WORKSPACE/Scripts/RmWiFi.sh
-          $GITHUB_WORKSPACE/Scripts/RmUSB.sh
 
       - name: Download Packages
         run: |

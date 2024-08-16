@@ -50,8 +50,8 @@ on:
         default: false
         required: true
         type: boolean
-      OPENWRT_RMUSB:
-        description: "移除所有USB相关驱动"
+      OPENWRT_USB:
+        description: "添加USB相关驱动"
         default: false
         required: true
         type: boolean
@@ -87,7 +87,7 @@ jobs:
       OPENWRT_PACKAGES: ${{inputs.OPENWRT_PACKAGES}}
       # 移除Wi-Fi
       OPENWRT_RMWIFI: ${{inputs.OPENWRT_RMWIFI}}
-      # 移除USB
-      OPENWRT_RMUSB: ${{inputs.OPENWRT_RMUSB}}
+      # 添加USB相关驱动
+      OPENWRT_USB: ${{inputs.OPENWRT_USB}}
       # 是否发布
       IS_RELEASE: true
