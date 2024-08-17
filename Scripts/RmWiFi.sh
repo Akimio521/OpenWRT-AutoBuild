@@ -2,7 +2,7 @@
 
 # 移除Wi-Fi相关驱动
 if [ $OPENWRT_RMWIFI == "true" ]; then
-	sed -i -E '/CONFIG_PACKAGE.*(ath11k|80211|wpad|hostapd).*=[yY]$/s/=[yY]$/=n/' ./.config
+	sed -i -E '/CONFIG_PACKAGE.*(ath11k|80211|hostapd).*=[yY]$/s/=[yY]$/=n/' ./.config
 
     # # IPQ60XX
     # if [ $OPENWRT_TARGET == "IPQ60XX" ]; then
