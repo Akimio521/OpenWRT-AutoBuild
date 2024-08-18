@@ -156,7 +156,7 @@ jobs:
         run: |
           cd ./openwrt/
           make -j$(nproc) || make -j1 V=s
-          echo "DEVICES=$(grep '^CONFIG_TARGET.*DEVICE.*=y' .config | grep -v 'ROOTFS' | sed -r 's/.*DEVICE_(.*)=y/\1/' | paste -sd,)" >> $GITHUB_ENV
+          echo "DEVICES=$(grep '^CONFIG_TARGET.*DEVICE.*=y' .config | grep -Ev '(ROOTFS|.devices_mango-dvk)' | sed -r 's/.*DEVICE_(.*)=y/\1/' | paste -sd,)" >> $GITHUB_ENV
           echo "COMPILE_DATE=$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
           echo "status=success" >> $GITHUB_OUTPUT
 
