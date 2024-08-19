@@ -136,13 +136,13 @@ jobs:
         run: |
           cd ./openwrt/
           rm -rf ./tmp* ./.config*
-          cat $GITHUB_WORKSPACE/Config/$OPENWRT_TARGET.txt >> .config
-          cat $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
+          cat $GITHUB_WORKSPACE/Config/$OPENWRT_TARGET.config >> .config
+          cat $GITHUB_WORKSPACE/Config/GENERAL.config >> .config
           if [ $OPENWRT_USB == true ]; then
-            cat $GITHUB_WORKSPACE/Config/USB.txt >> .config
+            cat $GITHUB_WORKSPACE/Config/USB.config >> .config
           fi
-          $GITHUB_WORKSPACE/Scripts/Settings.sh
           $GITHUB_WORKSPACE/Scripts/Package.sh
+          $GITHUB_WORKSPACE/Scripts/Settings.sh
           make defconfig
           $GITHUB_WORKSPACE/Scripts/RmWiFi.sh
 
