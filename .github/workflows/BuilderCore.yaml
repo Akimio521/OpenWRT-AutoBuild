@@ -120,7 +120,8 @@ jobs:
 
       - name: Load Custom Packages Feeds
         run: |
-          $GITHUB_WORKSPACE/Scripts/CustomFeeds.sh
+          $GITHUB_WORKSPACE/Scripts/Feeds.sh
+          cat ./openwrt/feeds.conf.default
 
       - name: Update Feeds
         run: |
