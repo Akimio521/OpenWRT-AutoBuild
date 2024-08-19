@@ -35,7 +35,3 @@
   -  [istore](https://github.com/linkease/istore)
   -  [nas-packages](https://github.com/linkease/nas-packages)
   -  [nas-packages-luci](https://github.com/linkease/nas-packages-luci)
-
-## 项目目录简要说明：
-- Scripts——自定义脚本
-- Config——自定义配置
